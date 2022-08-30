@@ -21,6 +21,7 @@ public enum APIError: Error {
     case unknown
 }
 
+@available(iOS 13.0, *)
 @available(macOS 10.15, *)
 public struct Webservice {
     public static var shared = Webservice()
