@@ -23,9 +23,9 @@ public enum APIError: Error {
 
 @available(macOS 10.15, *)
 public struct Webservice {
-    static var shared = Webservice()
+    public static var shared = Webservice()
 
-    func load<T>(from urlString: String, queryParameter: [QueryParameter] = [], headerFields: [HttpHeaderField] = []) -> AnyPublisher<T, APIError> where T: Decodable {
+    public func load<T>(from urlString: String, queryParameter: [QueryParameter] = [], headerFields: [HttpHeaderField] = []) -> AnyPublisher<T, APIError> where T: Decodable {
         let queryParams = buildQueryParametersFor(parameters: queryParameter)
         guard let url = URL(string: "\(urlString)\(queryParams)") else { fatalError() }
 
