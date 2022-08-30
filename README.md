@@ -1,3 +1,3 @@
 # Webservice
 
-A description of this package.
+A commonly usable Webservice struct to access JSON REST API with Combine.
