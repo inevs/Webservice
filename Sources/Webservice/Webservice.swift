@@ -79,7 +79,7 @@ public struct Webservice {
         return "?\(parameterValues)"
     }
 
-    func getKeyFor(name: String) -> String? {
+    public func getKeyFor(name: String) -> String? {
         if let url = Bundle.main.url(forResource: "api-keys", withExtension: "plist") {
             do {
                 let data = try Data(contentsOf: url)
