@@ -4,11 +4,21 @@ import Combine
 public struct HttpHeaderField {
     let field: String
     let value: String
+    
+    public init(field: String, value: String) {
+        self.field = field
+        self.value = value
+    }
 }
 
 public struct QueryParameter {
     let parameter: String
     let value: String
+    
+    public init(parameter: String, value: String) {
+        self.parameter = parameter
+        self.value = value
+    }
 }
 
 public enum NetworkError: Error {
