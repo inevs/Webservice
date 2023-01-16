@@ -1,5 +1,5 @@
 import Foundation
-import Combine
+import os
 
 public struct HttpHeaderField {
     let field: String
@@ -31,45 +31,16 @@ public enum APIError: Error {
     case unknown
 }
 
-@available(iOS 13.0, *)
-@available(macOS 10.15, *)
+@available(iOS 14.0, *)
+@available(macOS 11, *)
 public struct Webservice {
+    #if os(macOS)
+    private static let logger = Logger(
+            subsystem: Bundle.main.bundleIdentifier!,
+            category: String(describing: Webservice.self)
+        )
+    #endif
     public static var shared = Webservice()
-
-    public func load<T>(from urlString: String, queryParameter: [QueryParameter] = [], headerFields: [HttpHeaderField] = []) -> AnyPublisher<T, APIError> where T: Decodable {
-        let queryParams = buildQueryParametersFor(parameters: queryParameter)
-        guard let url = URL(string: "\(urlString)\(queryParams)") else { fatalError() }
-
-        var request = URLRequest(url: url)
-        request.cachePolicy = .returnCacheDataElseLoad
-        for headerField in headerFields {
-            request.addValue(headerField.value, forHTTPHeaderField: headerField.field)
-        }
-
-        return URLSession.shared.dataTaskPublisher(for: request)
-            .print()
-            .receive(on: DispatchQueue.main)
-            .mapError { _ in .unknown }
-            .flatMap { data, response -> AnyPublisher<T, APIError> in
-                if let response = response as? HTTPURLResponse {
-                    if (200...299).contains(response.statusCode) {
-                        let decoder = JSONDecoder()
-                        decoder.dateDecodingStrategy = .secondsSince1970
-                        return Just(data)
-                            .decode(type: T.self, decoder: JSONDecoder())
-                            .mapError { error in
-                                return .decodingError(error) }
-                            .eraseToAnyPublisher()
-                    } else {
-                        return Fail(error: APIError.httpError(response.statusCode))
-                            .eraseToAnyPublisher()
-                    }
-                }
-                return Fail(error: APIError.unknown)
-                    .eraseToAnyPublisher()
-            }
-            .eraseToAnyPublisher()
-    }
 
     public func loadAsync<T>(from urlString: String, queryParameter: [QueryParameter] = [], headerFields: [HttpHeaderField] = []) async -> Result<T, APIError> where T: Decodable {
         let queryParams = buildQueryParametersFor(parameters: queryParameter)
@@ -83,6 +54,9 @@ public struct Webservice {
 
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
+            #if os(macOS)
+            Self.logger.notice("Read data: \(String(data: data, encoding: .utf8) ?? "n/a")")
+            #endif
             let result = try JSONDecoder().decode(T.self, from: data)
             return .success(result)
         } catch {
