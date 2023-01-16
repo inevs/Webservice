@@ -71,6 +71,26 @@ public struct Webservice {
             .eraseToAnyPublisher()
     }
 
+    public func loadAsync<T>(from urlString: String, queryParameter: [QueryParameter] = [], headerFields: [HttpHeaderField] = []) async -> Result<T, APIError> where T: Decodable {
+        let queryParams = buildQueryParametersFor(parameters: queryParameter)
+        guard let url = URL(string: "\(urlString)\(queryParams)") else { fatalError() }
+
+        var request = URLRequest(url: url)
+        request.cachePolicy = .returnCacheDataElseLoad
+        for headerField in headerFields {
+            request.addValue(headerField.value, forHTTPHeaderField: headerField.field)
+        }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let result = try JSONDecoder().decode(T.self, from: data)
+            return .success(result)
+        } catch {
+            print(error.localizedDescription)
+            return.failure(.decodingError(error))
+        }
+    }
+    
     func buildQueryParametersFor(parameters: [QueryParameter]) -> String {
         if parameters.count == 0 { return "" }
 
