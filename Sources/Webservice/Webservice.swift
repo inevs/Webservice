@@ -1,5 +1,4 @@
 import Foundation
-import os
 
 public struct HttpHeaderField {
     let field: String
@@ -34,12 +33,6 @@ public enum APIError: Error {
 @available(iOS 14.0, *)
 @available(macOS 11, *)
 public struct Webservice {
-    #if os(macOS)
-    private static let logger = Logger(
-            subsystem: Bundle.main.bundleIdentifier!,
-            category: String(describing: Webservice.self)
-        )
-    #endif
     public static var shared = Webservice()
 
     public func loadAsync<T>(from urlString: String, queryParameter: [QueryParameter] = [], headerFields: [HttpHeaderField] = []) async -> Result<T, APIError> where T: Decodable {
@@ -51,15 +44,20 @@ public struct Webservice {
         for headerField in headerFields {
             request.addValue(headerField.value, forHTTPHeaderField: headerField.field)
         }
+        
+//        print("loading from: \(url.absoluteString)")
 
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
-            #if os(macOS)
-            Self.logger.notice("Read data: \(String(data: data, encoding: .utf8) ?? "n/a")")
-            #endif
+            
+//            if let string = String(data: data, encoding: .utf8) {
+//                print(string)
+//            }
+            
             let result = try JSONDecoder().decode(T.self, from: data)
             return .success(result)
         } catch {
+            print("could't read data")
             print(error.localizedDescription)
             return.failure(.decodingError(error))
         }
@@ -69,7 +67,7 @@ public struct Webservice {
         if parameters.count == 0 { return "" }
 
         let parameterValueStrings = parameters.map { "\($0.parameter)=\($0.value)" }
-        let parameterValues = parameterValueStrings.joined(separator: "&")
+        let parameterValues = parameterValueStrings.joined(separator: "&").addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         return "?\(parameterValues)"
     }
 
