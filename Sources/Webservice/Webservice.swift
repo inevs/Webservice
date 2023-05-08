@@ -30,13 +30,17 @@ public enum APIError: Error {
     case unknown
 }
 
-public protocol APILoading {
+public protocol JSONLoading {
     func loadAsync<T>(from urlString: String, queryParameter: [QueryParameter], headerFields: [HttpHeaderField]) async -> Result<T, APIError> where T: Decodable;
+}
+
+public protocol KeyHolding {
+    func getKeyFor(name: String) -> String?
 }
 
 @available(iOS 14.0, *)
 @available(macOS 11, *)
-public struct Webservice: APILoading {
+public struct Webservice: JSONLoading, KeyHolding {
     public static var shared = Webservice()
 
     public func loadAsync<T>(from urlString: String, queryParameter: [QueryParameter] = [], headerFields: [HttpHeaderField] = []) async -> Result<T, APIError> where T: Decodable {
