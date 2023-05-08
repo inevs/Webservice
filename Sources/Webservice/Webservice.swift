@@ -30,7 +30,7 @@ public enum APIError: Error {
     case unknown
 }
 
-protocol APILoading {
+public protocol APILoading {
     func loadAsync<T>(from urlString: String, queryParameter: [QueryParameter], headerFields: [HttpHeaderField]) async -> Result<T, APIError> where T: Decodable;
 }
 
