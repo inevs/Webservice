@@ -30,9 +30,13 @@ public enum APIError: Error {
     case unknown
 }
 
+protocol APILoading {
+    func loadAsync<T>(from urlString: String, queryParameter: [QueryParameter], headerFields: [HttpHeaderField]) async -> Result<T, APIError> where T: Decodable;
+}
+
 @available(iOS 14.0, *)
 @available(macOS 11, *)
-public struct Webservice {
+public struct Webservice: APILoading {
     public static var shared = Webservice()
 
     public func loadAsync<T>(from urlString: String, queryParameter: [QueryParameter] = [], headerFields: [HttpHeaderField] = []) async -> Result<T, APIError> where T: Decodable {
@@ -55,10 +59,11 @@ public struct Webservice {
 //            }
             
             let result = try JSONDecoder().decode(T.self, from: data)
+//            print(result)
             return .success(result)
         } catch {
             print("could't read data")
-            print(error.localizedDescription)
+            print(error)
             return.failure(.decodingError(error))
         }
     }
